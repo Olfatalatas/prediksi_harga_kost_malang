@@ -1,0 +1,45 @@
+========================================================
+   PERTARUNGAN MODEL: LINEAR REGRESSION VS RANDOM FOREST
+========================================================
+
+[1] Melatih Linear Regression...
+    -> MAE (Error Rupiah): Rp 160,417
+    -> R2 Score (Akurasi): 0.59
+    -> MAPE (Error %): 13.55%
+
+    --- Classification Report (Linear Regression) ---
+              precision    recall  f1-score   support
+
+    Ekonomis       0.72      0.74      0.73        46
+     Standar       0.28      0.18      0.22        39
+   Eksklusif       0.67      0.74      0.70       119
+
+    accuracy                           0.63       204
+   macro avg       0.56      0.55      0.55       204
+weighted avg       0.61      0.63      0.62       204
+
+
+[2] Tuning Random Forest dengan Optuna...
+    -> Parameter Terbaik RF: {'n_estimators': 330, 'max_depth': 40, 'min_samples_split': 5, 'min_samples_leaf': 1}
+    -> MAE (Error Rupiah): Rp 104,426
+    -> R2 Score (Akurasi): 0.75
+    -> MAPE (Error %): 8.32%
+
+    --- Classification Report (Random Forest) ---
+              precision    recall  f1-score   support
+
+    Ekonomis       0.77      0.93      0.84        46
+     Standar       0.66      0.64      0.65        39
+   Eksklusif       0.85      0.78      0.81       119
+
+    accuracy                           0.79       204
+   macro avg       0.76      0.79      0.77       204
+weighted avg       0.79      0.79      0.79       204
+
+
+========================================================
+   HASIL AKHIR (FINAL VERDICT)
+========================================================
+🏆 PEMENANG: RANDOM FOREST
+   (Lebih akurat Rp 55,990 dibanding Linear Regression)
+Model Random Forest telah disimpan ke file .pkl
