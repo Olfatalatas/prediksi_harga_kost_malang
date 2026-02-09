@@ -118,9 +118,10 @@ Proyek ini mengimplementasikan **predictive pricing model** untuk kost (akomodas
 
 ### Instalasi Lokal
 
-1. **Clone/Download Repository**
+1. **Clone Repository**
 ```bash
-cd d:\Kerja\Portfolio\ AI\ Engineer\projek_kost_malang
+git clone https://github.com/Olfatalatas/prediksi_harga_kost_malang.git
+cd prediksi_harga_kost_malang
 ```
 
 2. **Setup Virtual Environment (Recommended)**
@@ -238,6 +239,14 @@ python train_model.py
 streamlit run app.py
 ```
 
+### Scenario C: Akses Web App Online (Tanpa Setup Lokal)
+
+Tidak ingin setup lokal? Anda bisa langsung akses aplikasi yang sudah di-deploy:
+
+🌐 **[Akses Aplikasi di Streamlit Cloud](https://prediksihargakostmalang.streamlit.app/)**
+
+Tanpa perlu install apapun, langsung bisa prediksi harga kost!
+
 ---
 
 ## 📈 Pipeline Data Science
@@ -337,9 +346,9 @@ Hasil disimpan di `hasil_evaluasi/laporan_komparasi_model.txt`
 ┌─────────────────────┬──────────┬───────────┬──────────┐
 │ Metric              │ Linear   │ RF        │ Winner   │
 ├─────────────────────┼──────────┼───────────┼──────────┤
-│ R² Score            │ 0.72     │ 0.85      │ ✓ RF     │
-│ MAE (Rp)            │ 185,000  │ 92,000    │ ✓ RF     │
-│ MAPE (%)            │ 15.3%    │ 7.8%      │ ✓ RF     │
+│ R² Score            │ 0.59     │ 0.75      │ ✓ RF     │
+│ MAE (Rp)            │ 160,417  │ 104,426   │ ✓ RF     │
+│ MAPE (%)            │ 13.55%   │ 8.32%     │ ✓ RF     │
 └─────────────────────┴──────────┴───────────┴──────────┘
 ```
 
