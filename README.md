@@ -478,8 +478,8 @@ streamlit run app.py --logger.level=debug
 Untuk memahami lebih mendalam setiap komponen:
 
 1. **Web Scraping:** 
-   - [Selenium Documentation](https://selenium-python.readthedocs.io/)
-   - BeautifulSoup: [Quick Start](https://www.crummy.com/software/BeautifulSoup/bs4/doc/)
+   - [Selenium Documentation](https://www.selenium.dev/documentation/)
+   - BeautifulSoup: [Quick Start](https://beautiful-soup-4.readthedocs.io/en/latest/)
 
 2. **Data Science:**
    - Pandas: [10 minutes to pandas](https://pandas.pydata.org/docs/user_guide/10min.html)
@@ -487,7 +487,7 @@ Untuk memahami lebih mendalam setiap komponen:
 
 3. **Model Tuning:**
    - [Optuna Framework](https://optuna.readthedocs.io/)
-   - [Hyperparameter Optimization Best Practices](https://towardsdatascience.com/)
+   - [Hyperparameter Optimization Best Practices](https://www.geeksforgeeks.org/machine-learning/hyperparameters-optimization-methods-ml/)
 
 4. **Deployment:**
    - [Streamlit Documentation](https://docs.streamlit.io/)
