@@ -19,7 +19,7 @@ Sistem prediksi harga sewa kost di Malang menggunakan Machine Learning dengan ak
 
 ## 📊 Overview
 
-Proyek ini mengimplementasikan **predictive pricing model** untuk kost (akomodasi berpenghuni) di kota Malang, Jawa Timur. Dengan menganalisis lebih dari 1,000+ data point dari berbagai platform listing, kami mengembangkan model yang dapat memprediksi harga sewa berdasarkan:
+Proyek ini mengimplementasikan **predictive pricing model** untuk kost (akomodasi berpenghuni) di kota Malang, Jawa Timur. Dengan menganalisis lebih dari 1,000+ data point dari [Mamikos](https://mamikos.com/), kami mengembangkan model yang dapat memprediksi harga sewa berdasarkan:
 
 - **Lokasi geografis** (8 kecamatan di Malang)
 - **Tipe kost** (Putra, Putri, Campur)
@@ -499,7 +499,7 @@ Jika menemukan bug atau ingin improvement:
 **Created:** February 2026  
 **Python Version:** 3.8+
 
-**Contact:** [Your Email/Github]
+**Contact:** [Github](https://github.com/Olfatalatas/)]
 
 ---
 
