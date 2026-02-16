@@ -11,7 +11,6 @@ def scrape_kost_malang():
     
     # 1. Setup Chrome Driver
     options = webdriver.ChromeOptions()
-    # options.add_argument("--headless") 
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36")
     
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
@@ -28,8 +27,7 @@ def scrape_kost_malang():
     
     # Tentukan mau berapa kali klik tombol "Lihat Lagi"?
     # Semakin banyak, semakin lama, tapi data semakin banyak.
-    # Coba 5 kali dulu untuk tes. Kalau lancar, ganti jadi 20 atau 50.
-    MAX_CLICKS = 50
+    MAX_CLICKS = 300
     
     for i in range(MAX_CLICKS):
         try:
@@ -38,24 +36,21 @@ def scrape_kost_malang():
             time.sleep(2) 
 
             # Cari tombol yang mengandung kata "Lihat" (Lihat lagi / Lihat lebih banyak)
-            # Kita pakai XPATH karena lebih sakti mencari teks
             tombol_load_more = driver.find_element(By.XPATH, "//*[contains(text(), 'Lihat')]")
             
             # KLIK TOMBOLNYA
-            # Kita pakai JavaScript Click agar lebih ampuh (tembus jika ada iklan yang menutupi)
             driver.execute_script("arguments[0].click();", tombol_load_more)
             
             print(f"Berhasil klik 'Lihat lagi' ke-{i+1}...")
-            time.sleep(3) # Tunggu data baru loading (JANGAN DIHAPUS, PENTING!)
+            time.sleep(3) # Tunggu data baru loading
             
         except Exception as e:
-            # Jika tombol tidak ditemukan (berarti data sudah habis), berhenti loop
             print("Tombol 'Lihat lagi' tidak ditemukan atau data sudah habis. Berhenti loading.")
             break
     
     # =========================================================================
 
-    # 4. Ambil Source Code HTML (Setelah semua klik selesai)
+    # 4. Ambil Source Code HTML
     soup = BeautifulSoup(driver.page_source, "html.parser")
     
     # 5. Ekstrak Data
@@ -84,7 +79,7 @@ def scrape_kost_malang():
             daerah_elem = card.find('span', class_='rc-info__location bg-c-text bg-c-text--body-3')
             daerah = daerah_elem.text.strip() if daerah_elem else "Tidak Diketahui"
 
-            # Mengambil Jenis Kost (Logika Anda sudah benar)
+            # Mengambil Jenis Kost
             text_kartu = card.text.lower()
             jenis_kost = "Tidak Diketahui"
             if "putri" in text_kartu:

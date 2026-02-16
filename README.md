@@ -1,402 +1,283 @@
 # 🏠 AI Estimasi Harga Kost Malang
 
-Sistem prediksi harga sewa kost di Malang menggunakan Machine Learning dengan akurasi tinggi. Proyek ini mendemonstrasikan end-to-end pipeline data science dari data acquisition hingga deployment.
+Sistem prediksi harga sewa kost di Malang menggunakan Machine Learning dengan akurasi tinggi. Proyek ini mendemonstrasikan **end-to-end pipeline data science** dari data acquisition hingga deployment—sesuai standar industri untuk proyek ML production-ready.
+
+---
 
 ## 📋 Daftar Isi
 
-- [Overview](#overview)
-- [Fitur Utama](#fitur-utama)
-- [Arsitektur Proyek](#arsitektur-proyek)
-- [Stack Teknologi](#stack-teknologi)
-- [Requirement & Setup](#requirement--setup)
-- [Panduan Penggunaan](#panduan-penggunaan)
-- [Pipeline Data Science](#pipeline-data-science)
-- [Model Performance](#model-performance)
-- [Struktur Direktori](#struktur-direktori)
-- [Troubleshooting](#troubleshooting)
+- [Overview](#-overview)
+- [Fitur Utama](#-fitur-utama)
+- [Arsitektur Proyek](#-arsitektur-proyek)
+- [Stack Teknologi](#-stack-teknologi)
+- [Requirement & Setup](#️-requirement--setup)
+- [Panduan Penggunaan](#-panduan-penggunaan)
+- [Pipeline Data Science](#-pipeline-data-science)
+- [Model Performance](#-model-performance)
+- [Design Decisions](#-design-decisions)
+- [Reproducibility](#-reproducibility)
+- [Etika & Legal](#-etika--legal)
+- [Struktur Direktori](#-struktur-direktori)
+- [Troubleshooting](#-troubleshooting)
+- [Referensi](#-referensi)
 
 ---
 
 ## 📊 Overview
 
-Proyek ini mengimplementasikan **predictive pricing model** untuk kost (akomodasi berpenghuni) di kota Malang, Jawa Timur. Dengan menganalisis lebih dari 1,000+ data point dari [Mamikos](https://mamikos.com/), kami mengembangkan model yang dapat memprediksi harga sewa berdasarkan:
+Proyek ini mengimplementasikan **predictive pricing model** untuk kost (akomodasi berpenghuni) di kota Malang, Jawa Timur. Dengan menganalisis **6.000+** data point dari [Mamikos](https://mamikos.com/), model dapat memprediksi harga sewa bulanan berdasarkan:
 
-- **Lokasi geografis** (8 kecamatan di Malang)
-- **Tipe kost** (Putra, Putri, Campur)
-- **Fasilitas tersedia** (AC, WiFi, Kamar Mandi Dalam, dll)
+| Faktor | Deskripsi |
+|--------|-----------|
+| **Lokasi** | Kecamatan di Malang (one-hot encoded) |
+| **Jenis Kost** | Putra / Putri / Campur |
+| **Fasilitas** | AC, WiFi, Kamar Mandi Dalam, Kloset Duduk, Kasur, Akses 24 Jam (binary) |
 
 **Deliverable:**
-- ✅ Model machine learning dengan akurasi **R² Score > 0.8**
-- ✅ Web interface interaktif berbasis Streamlit
-- ✅ API-ready model untuk integrasi sistem
+
+- ✅ Model terpilih: **Random Forest** (R² ≈ 0.95, MAE ≈ Rp 50k)
+- ✅ Web interface interaktif berbasis **Streamlit**
+- ✅ Laporan komparasi model & grafik evaluasi di `hasil_evaluasi/`
+- ✅ Pipeline yang dapat dijalankan ulang (reproducible) dengan random seed tetap
 
 ---
 
 ## 🎯 Fitur Utama
 
-### 1. **Web Scraping Otomatis**
-- Mengumpulkan data real-time dari Mamikos.com
-- Handling dynamic loading dengan Selenium
-- Auto-retry mechanism & error handling
-
-### 2. **Data Cleaning & Preprocessing**
-- Standardisasi format harga (Rp → numeric)
-- Feature engineering untuk fasilitas
-- Handling missing values & outliers
-- One-hot encoding untuk categorical variables
-
-### 3. **Exploratory Data Analysis (EDA)**
-- Distribusi harga per kecamatan
-- Correlation analysis fasilitas vs harga
-- Statistical insights & visualizations
-
-### 4. **Model Training & Hyperparameter Tuning**
-- Comparison: Linear Regression vs Random Forest
-- Bayesian Optimization menggunakan Optuna
-- Cross-validation & performance metrics
-- Model persistence dengan joblib
-
-### 5. **Interactive Web Application**
-- User-friendly Streamlit interface
-- Real-time price estimation
-- Responsive design & custom styling
+| Modul | Fungsi |
+|-------|--------|
+| **Web Scraping** | Mengumpulkan data dari Mamikos; handle dynamic loading (tombol "Lihat lagi") dengan Selenium |
+| **Data Cleaning** | Normalisasi harga, parsing fasilitas → binary features, standardisasi nama kecamatan |
+| **EDA** | Distribusi harga, boxplot fasilitas vs harga, heatmap korelasi |
+| **Training** | Linear Regression vs Random Forest; tuning RF dengan **Optuna** (15 trials, 3-fold CV) |
+| **Web App** | Input lokasi + fasilitas → estimasi harga real-time (Streamlit) |
 
 ---
 
 ## 🏗️ Arsitektur Proyek
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                  DATA ACQUISITION LAYER                 │
-│  (scrape_malang.py) → Selenium Web Scraping             │
-└──────────────────────┬──────────────────────────────────┘
-                       ↓
-┌─────────────────────────────────────────────────────────┐
-│             DATA PREPROCESSING LAYER                     │
-│     (clean_data.py) → Cleaning & Feature Engineering    │
-└──────────────────────┬──────────────────────────────────┘
-                       ↓
-┌─────────────────────────────────────────────────────────┐
-│          EXPLORATORY DATA ANALYSIS LAYER                │
-│          (eda_check.py) → Insights & Visualizations    │
-└──────────────────────┬──────────────────────────────────┘
-                       ↓
-┌─────────────────────────────────────────────────────────┐
-│         MODEL TRAINING & EVALUATION LAYER               │
-│  (train_model.py) → Linear Regression vs Random Forest  │
-└──────────────────────┬──────────────────────────────────┘
-                       ↓
-┌─────────────────────────────────────────────────────────┐
-│           MODEL SERVING LAYER                           │
-│      (app.py) → Streamlit Web Interface                 │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  DATA ACQUISITION                                            │
+│  scrape_malang.py → Selenium + BeautifulSoup (Mamikos)       │
+└──────────────────────────┬──────────────────────────────────┘
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│  PREPROCESSING                                               │
+│  clean_data.py → Harga, Fasilitas, Daerah → ML-ready CSV     │
+└──────────────────────────┬──────────────────────────────────┘
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│  EDA                                                         │
+│  eda_check.py → Distribusi, Fasilitas, Korelasi → PNG        │
+└──────────────────────────┬──────────────────────────────────┘
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│  TRAINING & EVALUATION                                       │
+│  train_model.py → LR vs RF (Optuna) → pemenang + laporan     │
+└──────────────────────────┬──────────────────────────────────┘
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│  SERVING                                                     │
+│  app.py → Streamlit UI, load model_kost_terbaik.pkl          │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## 💻 Stack Teknologi
 
-| Kategori | Tools | Versi |
-|----------|-------|-------|
-| **Data Processing** | pandas, numpy | ≥1.3.0, ≥1.21.0 |
-| **Visualization** | matplotlib, seaborn | ≥3.4.0, ≥0.11.0 |
-| **ML/Statistics** | scikit-learn | ≥0.24.0 |
-| **Web Scraping** | selenium, beautifulsoup4 | ≥3.141.0, ≥4.9.0 |
-| **Hyperparameter Tuning** | optuna | ≥2.0.0 |
-| **Model Deployment** | streamlit | ≥1.0.0 |
-| **Model Persistence** | joblib | ≥1.0.0 |
-| **Driver Management** | webdriver-manager | ≥3.5.0 |
+| Kategori | Library | Versi Min. |
+|----------|---------|------------|
+| Data & ML | pandas, numpy, scikit-learn, joblib | 1.3, 1.21, 0.24, 1.0 |
+| Visualisasi | matplotlib, seaborn | 3.4, 0.11 |
+| Web App | streamlit, altair | 1.24, &lt;5 |
+| Scraping | selenium, beautifulsoup4, webdriver-manager | 4.0, 4.9, 3.8 |
+| Tuning | optuna | 2.10 |
 
 ---
 
 ## ⚙️ Requirement & Setup
 
-### Prerequisites
-- Python 3.8+
-- Git (opsional)
-- Chrome Browser (untuk web scraping)
+### Prasyarat
 
-### Instalasi Lokal
+- **Python** 3.8+
+- **Chrome** (untuk scraping; driver diatur otomatis via `webdriver-manager`)
 
-1. **Clone Repository**
+### Instalasi
+
 ```bash
+# Clone
 git clone https://github.com/Olfatalatas/prediksi_harga_kost_malang.git
-cd prediksi_harga_kost_malang
-```
+cd prediksi_harga_kost_malang  # atau projek_kost_malang
 
-2. **Setup Virtual Environment (Recommended)**
-```bash
-# Buat virtual environment
+# Virtual environment (disarankan)
 python -m venv venv
-
-# Activate virtual environment
 # Windows:
 venv\Scripts\activate
-
 # macOS/Linux:
-source venv/bin/activate
-```
-⚠️ Folder `venv/` dan `env/` sudah di-ignore dalam `.gitignore`
+# source venv/bin/activate
 
-3. **Install Dependencies**
-```bash
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-4. **Verifikasi Instalasi**
+### Verifikasi
+
 ```bash
-python -c "import pandas; import sklearn; print('✓ All packages installed')"
+python -c "import pandas, sklearn, streamlit, optuna; print('OK')"
 ```
 
-### Setup Paths (Penting!)
-Pastikan struktur folder seperti ini:
-```
-projek_kost_malang/
-├── app.py
-├── clean_data.py
-├── eda_check.py
-├── scrape_malang.py
-├── train_model.py
-├── requirements.txt
-├── data/
-│   ├── data_kost_malang.csv        (output dari scrape)
-│   └── data_kost_malang_clean.csv  (output dari clean)
-├── hasil_eda/                      (output dari EDA)
-├── hasil_evaluasi/                 (output dari training)
-└── README.md
-```
+### Working Directory
 
-### Development Guidelines
-
-**Git & Dependency Management:**
-- ✅ **Virtual Environment:** Selalu gunakan `venv` untuk isolasi dependencies
-  - Aktifkan sebelum development: `venv\Scripts\activate` (Windows)
-  - Deaktifkan setelah selesai: `deactivate`
-  
-- ✅ **Keep .gitignore Updated:** Jangan commit folder berikut:
-  - `venv/` atau `env/` (virtual environments)
-  - `__pycache__/` (Python cache files)
-  - `*.pyc` (compiled Python files)
-  - Lihat `.gitignore` di root directory untuk lengkapnya
-
-- ✅ **Python Cache:** Otomatis diabaikan by `.gitignore` — Anda tidak perlu khawatir
-
-**Best Practices:**
-1. **Buat venv baru** setiap kali clone repository
-2. **Update requirements.txt** jika menambah dependency: `pip freeze > requirements.txt`
-3. **Test instalasi** dengan verification command di atas
-4. **Komit hanya source code** dan `.gitignore`, bukan generated files
+Jalankan semua script dari **root proyek** agar path ke `data/`, `hasil_eda/`, dan `hasil_evaluasi/` konsisten. Beberapa script punya fallback baca dari `data/` jika file tidak ada di root.
 
 ---
 
 ## 🚀 Panduan Penggunaan
 
-### Scenario A: Fresh Start (Dari Nol)
+### Skenario A: Dari Nol (Full Pipeline)
 
-**Step 1: Scrape Data**
-```bash
-python scrape_malang.py
-```
-⏱️ **Waktu eksekusi:** 15-30 menit (tergantung kecepatan internet)
-📁 **Output:** `data/data_kost_malang.csv`
+| Langkah | Perintah | Output (umum) |
+|---------|----------|----------------|
+| 1. Scrape | `python scrape_malang.py` | `data_kost_malang.csv` (root) — pindahkan ke `data/` jika ingin seragam |
+| 2. Clean | `python clean_data.py` | `data_kost_malang_clean.csv` (root) |
+| 3. EDA | `python eda_check.py` | `eda_1_distribusi_harga.png`, `eda_2_fasilitas_lengkap.png`, `eda_3_korelasi.png` |
+| 4. Train | `python train_model.py` | `model_kost_terbaik.pkl`, `list_fitur.pkl`, `hasil_evaluasi/*` |
+| 5. App | `streamlit run app.py` | http://localhost:8501 |
 
-**Step 2: Clean Data**
-```bash
-python clean_data.py
-```
-📁 **Output:** `data/data_kost_malang_clean.csv`
+**Catatan:**  
+- Scraping: 15–30 menit; pastikan Chrome terpasang.  
+- Training: ~5–10 menit (Optuna 15 trials).  
+- Jika CSV ada di `data/`, `train_model.py` akan memakai `data/data_kost_malang_clean.csv`.
 
-**Step 3: Exploratory Data Analysis**
-```bash
-python eda_check.py
-```
-📁 **Output:** Visualisasi di `hasil_eda/` folder
-
-**Step 4: Train Model**
-```bash
-python train_model.py
-```
-⏱️ **Waktu eksekusi:** 5-10 menit
-📁 **Output:** 
-- `model_kost_terbaik.pkl`
-- `hasil_evaluasi/laporan_komparasi_model.txt`
-
-**Step 5: Launch Web App**
-```bash
-streamlit run app.py
-```
-🌐 **Akses:** `http://localhost:8501`
-
----
-
-### Scenario B: Menggunakan Data yang Sudah Ada
+### Skenario B: Data Sudah Ada
 
 ```bash
-# Skip scraping & cleaning, langsung training
+# Langsung training (baca dari data/data_kost_malang_clean.csv atau root)
 python train_model.py
 
-# Atau langsung ke web app (jika model sudah ada)
+# Lalu jalankan app
 streamlit run app.py
 ```
 
-### Scenario C: Akses Web App Online (Tanpa Setup Lokal)
+### Skenario C: Hanya Demo Web App
 
-Tidak ingin setup lokal? Anda bisa langsung akses aplikasi yang sudah di-deploy:
+Jika model sudah ada (`model_kost_terbaik.pkl`, `list_fitur.pkl` di root):
 
-🌐 **[Akses Aplikasi di Streamlit Cloud](https://prediksihargakostmalang.streamlit.app/)**
+```bash
+streamlit run app.py
+```
 
-Tanpa perlu install apapun, langsung bisa prediksi harga kost!
+Atau gunakan deployment online (jika tersedia):
+
+- 🌐 **[Streamlit Cloud](https://prediksihargakostmalang.streamlit.app/)**
 
 ---
 
 ## 📈 Pipeline Data Science
 
-### 1️⃣ **Data Acquisition** (`scrape_malang.py`)
+### 1. Data Acquisition (`scrape_malang.py`)
 
-**Objective:** Mengumpulkan data listing kost dari Mamikos.com
+- **Sumber:** Mamikos, hasil pencarian kost Malang (bulanan, rentang harga lebar).
+- **Teknik:** Selenium (dynamic content), klik berulang tombol "Lihat lagi" (max 300x), BeautifulSoup untuk parsing.
+- **Kolom:** Nama Kost, Jenis Kost, Harga Mentah, Fasilitas (teks), Daerah, Lokasi.
+- **Output:** `data_kost_malang.csv` (default di root; disarankan pindah ke `data/`).
 
-**Implementation Details:**
-- Menggunakan Selenium WebDriver untuk menangani JavaScript dynamic content
-- Auto-deteksi Chrome driver dengan webdriver-manager
-- Load-more button clicking untuk paginate semua hasil
-- BeautifulSoup untuk HTML parsing
-- User-agent spoofing untuk menghindari blocking
+### 2. Data Cleaning (`clean_data.py`)
 
-**Output Schema:**
-```
-Columns: [Nama Kost, Jenis Kost, Daerah, Fasilitas, Harga Mentah]
-Rows: 1,000+ listings
-```
+- **Harga:** Regex → angka; drop baris dengan harga &lt; 100.000.
+- **Fasilitas:** Hapus artefak (mis. star-glyph); binary encoding untuk: AC, WiFi, K. Mandi Dalam, Kloset Duduk, Kasur, Akses 24 Jam.
+- **Daerah:** "Kecamatan X" → "X".
+- **Output:** `data_kost_malang_clean.csv` (kolom: Nama Kost, Jenis Kost, Daerah_Clean, Harga_Angka, Fasilitas_*).
 
----
+### 3. EDA (`eda_check.py`)
 
-### 2️⃣ **Data Cleaning** (`clean_data.py`)
+- Grafik 1: distribusi harga (histogram + KDE).
+- Grafik 2: boxplot harga vs tiap kolom fasilitas (grid).
+- Grafik 3: heatmap korelasi (numerik).
+- Statistik deskriptif `Harga_Angka`.
 
-**Objective:** Transform raw data menjadi machine-learning ready dataset
+File disimpan di **current working directory** (bisa dipindah ke `hasil_eda/` untuk rapi).
 
-**Cleaning Steps:**
-1. **Harga Normalization**
-   - Regex extraction: "Rp 1.200.000/bulan" → 1200000
-   - Filter outliers: harga < 100,000 dihapus
-   
-2. **Fasilitas Parsing**
-   - Remove rating indicators ("★4.5 AC" → "AC")
-   - Feature binary encoding untuk key facilities:
-     - AC, WiFi, Kamar Mandi Dalam, Kloset Duduk, Kasur, Akses 24 Jam
+### 4. Model Training (`train_model.py`)
 
-3. **Lokasi Standardisasi**
-   - "Kecamatan Lowokwaru" → "Lowokwaru"
-   - Mapping ke 8 kecamatan utama Malang
+- **Data:** Hanya kecamatan dengan ≥10 sampel (untuk stabilitas one-hot).
+- **Preprocessing:** `get_dummies` untuk Daerah_Clean dan Jenis Kost; target: `Harga_Angka`; drop kolom non-fitur (mis. Nama Kost).
+- **Split:** 80% train, 20% test, `random_state=42`.
+- **Model:**
+  - **Linear Regression** (baseline).
+  - **Random Forest:** hyperparameter di-tune dengan Optuna (n_estimators, max_depth, min_samples_split, min_samples_leaf); 3-fold CV, negatif MAE.
+- **Seleksi:** Model dengan MAE lebih rendah menang; disimpan sebagai `model_kost_terbaik.pkl`; daftar fitur disimpan di `list_fitur.pkl`.
+- **Evaluasi tambahan:** Kategori harga (Ekonomis &lt;850k, Standar 850k–1.5M, Eksklusif &gt;1.5M) → classification report + confusion matrix; grafik: actual vs predicted, residual, feature importance/koefisien, confusion matrix.
+- **Output:** `hasil_evaluasi/laporan_komparasi_model.txt`, `hasil_evaluasi/Grafik_Random_Forest.png` (atau Linear_Regression).
 
-**Data Quality Metrics:**
-- Missing values: < 2%
-- Duplicates removed: Auto-deduplicated
-- Final rows: 85-90% dari data mentah
+### 5. Model Serving (`app.py`)
 
-**Output:** `data_kost_malang_clean.csv`
-
----
-
-### 3️⃣ **EDA & Validation** (`eda_check.py`)
-
-**Key Insights Generated:**
-- 📊 Distribusi harga per lokasi (box plots)
-- 🔗 Correlation matrix fasilitas vs harga
-- 📈 Trend analysis & seasonal patterns
-- 🎯 Target variable statistics (mean, median, std)
-
-**Visualization Outputs:**
-```
-hasil_eda/
-├── price_distribution.png
-├── location_comparison.png
-├── facility_correlation.png
-└── statistical_summary.txt
-```
-
----
-
-### 4️⃣ **Model Training** (`train_model.py`)
-
-**Strategi:**
-- **Baseline:** Linear Regression (untuk interpretability)
-- **Production Model:** Random Forest Regressor
-- **Hyperparameter Tuning:** Bayesian Optimization (Optuna)
-
-**Training Process:**
-
-```python
-# Test set split: 80% train, 20% test, random_state=42
-
-# Model 1: Linear Regression
-- Fit on X_train, evaluate on X_test
-- Metrics: MAE, R², MAPE
-
-# Model 2: Random Forest (Optimized)
-- Bayesian tuning with Optuna (15 trials)
-- Tune params: n_estimators, max_depth, min_samples_split/leaf
-- Cross-validation: 3-fold
-
-# Final Selection: Model with higher R² score
-```
-
-**Performance Comparison:**
-Hasil disimpan di `hasil_evaluasi/laporan_komparasi_model.txt`
-```
-┌─────────────────────┬──────────┬───────────┬──────────┐
-│ Metric              │ Linear   │ RF        │ Winner   │
-├─────────────────────┼──────────┼───────────┼──────────┤
-│ R² Score            │ 0.59     │ 0.75      │ ✓ RF     │
-│ MAE (Rp)            │ 160,417  │ 104,426   │ ✓ RF     │
-│ MAPE (%)            │ 13.55%   │ 8.32%     │ ✓ RF     │
-└─────────────────────┴──────────┴───────────┴──────────┘
-```
-
-**Model Persistence:**
-```bash
-joblib.dump(best_model, 'model_kost_terbaik.pkl')
-```
-
----
-
-### 5️⃣ **Model Deployment** (`app.py`)
-
-**Web Interface Features:**
-- 🎨 Clean, responsive Streamlit UI
-- 📍 Dropdown location selector (8 kecamatan)
-- 🛋️ Facility checkboxes (6 major facilities)
-- 💰 Real-time price prediction
-- 📊 Display with Rp formatting
-
-**User Input Transformation:**
-```python
-User Input → One-Hot Encoding → Feature Vector → Model.predict() → Display
-```
-
-**Styling:**
-- Custom CSS untuk hasil display
-- Dark mode compatible
-- Mobile responsive
+- Load `model_kost_terbaik.pkl` dan `list_fitur.pkl`.
+- Form: pilih kecamatan (dari nama fitur `Daerah_Clean_*`), jenis kost, centang fasilitas.
+- Input di-encode one-hot sesuai `list_fitur.pkl` → `model.predict()` → tampilkan estimasi harga (Rp).
 
 ---
 
 ## 📊 Model Performance
 
-### Evaluation Metrics Explained
+Metrik di bawah berdasarkan **laporan aktual** (dari run terakhir yang tercatat).
 
-| Metrik | Formula | Interpretasi |
-|--------|---------|--------------|
-| **R² Score** | 1 - (SS_res/SS_tot) | Berapa % variance yang dijelaskan model. Target: >0.8 |
-| **MAE** | (1/n)Σ\|y_true - y_pred\| | Rata-rata error absolut dalam Rp. Lebih kecil lebih baik |
-| **MAPE** | (1/n)Σ\|y_true - y_pred\|/y_true × 100% | Percentage error. Target: <10% |
+### Perbandingan Model
 
-### Confusion Matrix (Classification)
-Model juga dievaluasi pada kategori:
-- **Ekonomis:** < 850k
-- **Standar:** 850k - 1.5M
-- **Eksklusif:** > 1.5M
+| Metrik | Linear Regression | Random Forest | Pemenang |
+|--------|-------------------|---------------|----------|
+| **MAE (Rp)** | 127.885 | 49.982 | RF |
+| **R²** | 0.88 | 0.95 | RF |
+| **MAPE (%)** | 13,64 | 5,02 | RF |
 
-**Expected Accuracy:** 75-85%
+**Kesimpulan:** Random Forest dipilih sebagai model produksi (lebih akurat ~Rp 78k dalam MAE).
+
+### Interpretasi Metrik
+
+| Metrik | Arti |
+|--------|------|
+| **MAE** | Rata-rata selisih absolut prediksi vs harga asli (rupiah). |
+| **R²** | Proporsi varians harga yang dijelaskan model. |
+| **MAPE** | Rata-rata error dalam persen terhadap harga asli. |
+
+### Klasifikasi Kategori Harga
+
+Model juga dievaluasi pada bucket: **Ekonomis** (&lt;850k), **Standar** (850k–1.5M), **Eksklusif** (&gt;1.5M). Laporan precision/recall/F1 ada di `hasil_evaluasi/laporan_komparasi_model.txt`.
+
+---
+
+## 🧠 Design Decisions
+
+- **Mengapa Random Forest vs Linear Regression?**  
+  Non-linearitas hubungan fitur–harga (lokasi, fasilitas) lebih tertangkap RF; tuning dengan Optuna meningkatkan generalisasi. LR tetap berguna sebagai baseline yang interpretable.
+
+- **Mengapa filter kecamatan &lt;10 sampel?**  
+  One-hot untuk daerah dengan sedikit data menyebabkan fitur sparse dan risiko overfitting; menghapusnya meningkatkan stabilitas tanpa kehilangan banyak data.
+
+- **Mengapa 6 fasilitas itu?**  
+  Fasilitas tersebut konsisten muncul di sumber dan cukup informatif untuk prediksi harga; kolom lain bisa ditambah jika skema data diperluas.
+
+- **Mengapa Streamlit?**  
+  Cepat untuk prototipe dan demo; cocok untuk portfolio dan deployment di Streamlit Cloud tanpa backend terpisah.
+
+---
+
+## 🔁 Reproducibility
+
+- **Random state:** `random_state=42` di `train_test_split` dan Random Forest.
+- **Versi:** Gunakan `requirements.txt` dan (opsional) `pip freeze` untuk lock versi.
+- **Data:** Simpan sample atau metadata (jumlah baris, tanggal scrape) jika ingin melaporkan hasil yang persis sama.
+- **Optuna:** Jumlah trial (15) dan CV (3-fold) tetap; hasil bisa sedikit berbeda antar run karena proses stokastik RF/Optuna jika seed tidak di-set di level Optuna.
+
+---
+
+## ⚖️ Etika & Legal
+
+- **Scraping:** Data diambil dari situs pihak ketiga. Pastikan sesuai **Terms of Use** dan kebijakan robot situs tersebut; gunakan rate limiting dan user-agent yang wajar.
+- **Tujuan:** Proyek ini untuk edukasi dan portfolio; prediksi harga tidak menggantikan penilaian pasar atau nasihat profesional.
+- **Data pribadi:** Tidak menyimpan data pribadi pemilik kost; hanya informasi listing yang umum ditampilkan di situs.
 
 ---
 
@@ -404,129 +285,65 @@ Model juga dievaluasi pada kategori:
 
 ```
 projek_kost_malang/
-│
-├── 📄 README.md                          # (Anda baca file ini!)
-├── 📄 requirements.txt                   # Python dependencies
-│
-├── 🐍 CORE MODULES
-│   ├── app.py                            # Streamlit web interface
-│   ├── scrape_malang.py                  # Web scraping
-│   ├── clean_data.py                     # Data preprocessing
-│   ├── eda_check.py                      # Analysis & visualization
-│   └── train_model.py                    # Model training & tuning
-│
-├── 📊 DATA FOLDER (gitignored)
-│   ├── data_kost_malang.csv              # Raw scraped data
-│   └── data_kost_malang_clean.csv        # Cleaned & processed
-│
-├── 📈 HASIL_EDA/ (Output directory)
-│   ├── price_distribution.png
-│   ├── location_comparison.png
-│   └── ... (visualizations)
-│
-├── 📋 HASIL_EVALUASI/ (Output directory)
-│   └── laporan_komparasi_model.txt       # Model comparison report
-│
-└── 🤖 MODEL FILES (Generated)
-    ├── model_kost_terbaik.pkl            # Trained model
-    └── list_fitur.pkl                    # Feature list (optional)
+├── README.md
+├── requirements.txt
+├── app.py                  # Streamlit web app
+├── scrape_malang.py        # Scraping Mamikos
+├── clean_data.py           # Preprocessing
+├── eda_check.py            # EDA & visualisasi
+├── train_model.py          # Training & evaluasi
+├── model_kost_terbaik.pkl  # Model terpilih (generated)
+├── list_fitur.pkl          # Daftar kolom fitur (generated)
+├── data/
+│   ├── data_kost_malang.csv
+│   └── data_kost_malang_clean.csv
+├── hasil_eda/              # PNG dari EDA (jika disimpan di sini)
+└── hasil_evaluasi/
+    ├── laporan_komparasi_model.txt
+    └── Grafik_Random_Forest.png
 ```
 
 ---
 
 ## 🔍 Troubleshooting
 
-### ❌ Issue: "Module not found" error
-**Solution:**
-```bash
-pip install -r requirements.txt --upgrade
-python -m pip install --user --upgrade pip
-```
-
-### ❌ Issue: Scraping fails / Timeout
-**Solution:**
-- Periksa internet connection
-- Edit `MAX_CLICKS` di scrape_malang.py menjadi lebih kecil (20 instead of 50)
-- Mamikos mungkin blocking request → gunakan VPN
-
-### ❌ Issue: Model file not found
-**Solution:**
-```bash
-# Pastikan file sudah tergenerate
-python train_model.py
-
-# Verifikasi
-import os
-print(os.listdir('.')  # Harus ada 'model_kost_terbaik.pkl'
-```
-
-### ❌ Issue: Streamlit tidak responsive
-**Solution:**
-```bash
-# Clear Streamlit cache
-rm -r ~/.streamlit  # (Linux/Mac)
-rmdir /s %USERPROFILE%\.streamlit  # (Windows)
-
-# Restart
-streamlit run app.py --logger.level=debug
-```
+| Masalah | Solusi |
+|--------|--------|
+| Module not found | `pip install -r requirements.txt --upgrade`; pastikan venv aktif. |
+| Scraping timeout / gagal | Cek koneksi; kurangi `MAX_CLICKS` di `scrape_malang.py`; perhatikan pembatasan akses dari situs. |
+| Model/file tidak ditemukan | Jalankan `python train_model.py` dari root; pastikan `model_kost_terbaik.pkl` dan `list_fitur.pkl` ada di root (atau sesuaikan path di `app.py`). |
+| Streamlit cache aneh | Hapus cache: `rm -r ~/.streamlit` (Linux/macOS) atau hapus folder `.streamlit` di user (Windows); jalankan ulang `streamlit run app.py`. |
+| File CSV tidak ketemu | `clean_data.py` baca dari root `data_kost_malang.csv`; `train_model.py` coba root lalu `data/data_kost_malang_clean.csv`. Simpan CSV di salah satu lokasi itu atau sesuaikan path di script. |
 
 ---
 
-## 📚 Learning Resources
+## 📚 Referensi
 
-Untuk memahami lebih mendalam setiap komponen:
-
-1. **Web Scraping:** 
-   - [Selenium Documentation](https://www.selenium.dev/documentation/)
-   - BeautifulSoup: [Quick Start](https://beautiful-soup-4.readthedocs.io/en/latest/)
-
-2. **Data Science:**
-   - Pandas: [10 minutes to pandas](https://pandas.pydata.org/docs/user_guide/10min.html)
-   - Scikit-learn: [User Guide](https://scikit-learn.org/stable/user_guide.html)
-
-3. **Model Tuning:**
-   - [Optuna Framework](https://optuna.readthedocs.io/)
-   - [Hyperparameter Optimization Best Practices](https://www.geeksforgeeks.org/machine-learning/hyperparameters-optimization-methods-ml/)
-
-4. **Deployment:**
-   - [Streamlit Documentation](https://docs.streamlit.io/)
+- [Selenium](https://www.selenium.dev/documentation/)
+- [BeautifulSoup](https://beautiful-soup-4.readthedocs.io/)
+- [Scikit-learn User Guide](https://scikit-learn.org/stable/user_guide.html)
+- [Optuna](https://optuna.readthedocs.io/)
+- [Streamlit Docs](https://docs.streamlit.io/)
 
 ---
 
-## 📞 Support & Contributions
+## 📝 License & Kontak
 
-Jika menemukan bug atau ingin improvement:
-1. Document issue dengan clarity
-2. Include error log & reproduction steps
-3. Propose solution jika ada
-
----
-
-## 📝 License & Author
-
-**Created:** February 2026  
-**Python Version:** 3.8+
-
-**Contact:** [Github](https://github.com/Olfatalatas/)]
+- **Python:** 3.8+
+- **Kontak:** [GitHub – Olfatalatas](https://github.com/Olfatalatas)
+- **Last Updated:** Februari 2026
 
 ---
 
 ## ✅ Checklist Sebelum Production
 
-- [ ] All dependencies installed (`requirements.txt`)
-- [ ] Raw data scraped & saved
-- [ ] Data cleaning completed
-- [ ] EDA visualizations generated
-- [ ] Model trained & evaluated
-- [ ] Model file exists (`model_kost_terbaik.pkl`)
-- [ ] Web app tested locally (`streamlit run app.py`)
-- [ ] Performance metrics documented
-- [ ] Error handling implemented
-
----
-
-**Last Updated:** February 2026
+- [ ] Semua dependency terpasang (`pip install -r requirements.txt`)
+- [ ] Data mentah/clean tersedia dan path benar
+- [ ] EDA dijalankan (opsional, untuk insight)
+- [ ] Model sudah di-train dan file `.pkl` ada
+- [ ] Web app diuji lokal (`streamlit run app.py`)
+- [ ] ToS/legal scraping sudah dicek jika data dipakai ulang
+- [ ] README dan laporan evaluasi terdokumentasi
 
 ---
 

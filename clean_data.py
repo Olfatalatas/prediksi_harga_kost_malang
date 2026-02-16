@@ -84,7 +84,7 @@ def run_cleaning():
     df_clean.to_csv(output_file, index=False)
 
     print("\n=== CONTOH HASIL PEMBERSIHAN (5 DATA PERTAMA) ===")
-    print(df_clean.head().to_string()) # to_string agar terlihat rapi di terminal
+    print(df_clean.head().to_string())
     print("\n===============================================")
     print(f"SUKSES! Data bersih tersimpan di '{output_file}'")
     print(f"Total Data Bersih: {len(df_clean)} baris.")

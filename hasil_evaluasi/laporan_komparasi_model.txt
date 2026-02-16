@@ -1,45 +1,49 @@
 ========================================================
    PERTARUNGAN MODEL: LINEAR REGRESSION VS RANDOM FOREST
 ========================================================
+[INFO] Filter Kecamatan Sedikit:
+   - Awal: 6020 data
+   - Akhir: 6017 data
+   - Kecamatan yang dibuang: ['Kedungkandang']
 
 [1] Melatih Linear Regression...
-    -> MAE (Error Rupiah): Rp 160,417
-    -> R2 Score (Akurasi): 0.59
-    -> MAPE (Error %): 13.55%
+    -> MAE (Error Rupiah): Rp 127,885
+    -> R2 Score (Akurasi): 0.88
+    -> MAPE (Error %): 13.64%
 
     --- Classification Report (Linear Regression) ---
               precision    recall  f1-score   support
 
-    Ekonomis       0.72      0.74      0.73        46
-     Standar       0.28      0.18      0.22        39
-   Eksklusif       0.67      0.74      0.70       119
+    Ekonomis       0.91      0.89      0.90       497
+     Standar       0.86      0.99      0.92       265
+   Eksklusif       0.86      0.80      0.83       442
 
-    accuracy                           0.63       204
-   macro avg       0.56      0.55      0.55       204
-weighted avg       0.61      0.63      0.62       204
+    accuracy                           0.88      1204
+   macro avg       0.88      0.89      0.88      1204
+weighted avg       0.88      0.88      0.88      1204
 
 
 [2] Tuning Random Forest dengan Optuna...
-    -> Parameter Terbaik RF: {'n_estimators': 330, 'max_depth': 40, 'min_samples_split': 5, 'min_samples_leaf': 1}
-    -> MAE (Error Rupiah): Rp 104,426
-    -> R2 Score (Akurasi): 0.75
-    -> MAPE (Error %): 8.32%
+    -> Parameter Terbaik RF: {'n_estimators': 373, 'max_depth': 8, 'min_samples_split': 7, 'min_samples_leaf': 1}
+    -> MAE (Error Rupiah): Rp 49,982
+    -> R2 Score (Akurasi): 0.95
+    -> MAPE (Error %): 5.02%
 
     --- Classification Report (Random Forest) ---
               precision    recall  f1-score   support
 
-    Ekonomis       0.77      0.93      0.84        46
-     Standar       0.66      0.64      0.65        39
-   Eksklusif       0.85      0.78      0.81       119
+    Ekonomis       0.98      0.95      0.96       497
+     Standar       0.93      0.97      0.95       265
+   Eksklusif       0.92      0.93      0.93       442
 
-    accuracy                           0.79       204
-   macro avg       0.76      0.79      0.77       204
-weighted avg       0.79      0.79      0.79       204
+    accuracy                           0.95      1204
+   macro avg       0.94      0.95      0.95      1204
+weighted avg       0.95      0.95      0.95      1204
 
 
 ========================================================
    HASIL AKHIR (FINAL VERDICT)
 ========================================================
 🏆 PEMENANG: RANDOM FOREST
-   (Lebih akurat Rp 55,990 dibanding Linear Regression)
-Model Random Forest telah disimpan ke file .pkl
+   (Lebih akurat Rp 77,903 dibanding Linear Regression)
+Model Random Forest dan list fitur telah disimpan (FIXED FORMAT).

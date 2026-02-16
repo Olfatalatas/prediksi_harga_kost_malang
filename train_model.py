@@ -10,7 +10,6 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, r2_score, classification_report, confusion_matrix
 
-# Variabel Global untuk menampung teks log
 LOG_DATA = []
 
 def log_print(text):
@@ -24,8 +23,33 @@ def latih_final_battle():
     log_print("========================================================")
 
     # 1. Load Data
-    df = pd.read_csv('data_kost_malang_clean.csv')
-    df = pd.get_dummies(df, columns=['Daerah_Clean', 'Jenis Kost'], drop_first=True)
+    try:
+        df = pd.read_csv('data_kost_malang_clean.csv')
+    except FileNotFoundError:
+        # Fallback jika file ada di dalam folder 'data/'
+        df = pd.read_csv('data/data_kost_malang_clean.csv')
+
+    # Kita hitung jumlah data per kecamatan
+    counts = df['Daerah_Clean'].value_counts()
+    
+    # Hanya ambil kecamatan yang punya minimal 10 data
+    valid_kecamatan = counts[counts >= 10].index
+    
+    # Simpan data asli sebelum filter untuk laporan log
+    jumlah_awal = len(df)
+    
+    # Lakukan Filter
+    df = df[df['Daerah_Clean'].isin(valid_kecamatan)]
+    jumlah_akhir = len(df)
+    
+    log_print(f"[INFO] Filter Kecamatan Sedikit:")
+    log_print(f"   - Awal: {jumlah_awal} data")
+    log_print(f"   - Akhir: {jumlah_akhir} data")
+    log_print(f"   - Kecamatan yang dibuang: {list(counts[counts < 10].index)}")
+    # -----------------------------------------------
+
+    # Preprocessing
+    df = pd.get_dummies(df, columns=['Daerah_Clean', 'Jenis Kost'], drop_first=False)
     X = df.drop(['Harga_Angka', 'Nama Kost'], axis=1)
     y = df['Harga_Angka']
 
@@ -60,7 +84,7 @@ def latih_final_battle():
     log_print(f"    -> R2 Score (Akurasi): {r2_lr:.2f}")
     log_print(f"    -> MAPE (Error %): {mape_lr:.2f}%")
     
-    # Classification Report LR (Agar adil, LR juga kita cek kategorinya)
+    # Classification Report LR
     y_pred_lr_kat = [kategorikan(h) for h in y_pred_lr]
     log_print("\n    --- Classification Report (Linear Regression) ---")
     log_print(classification_report(y_test_kat, y_pred_lr_kat, target_names=labels))
@@ -70,7 +94,6 @@ def latih_final_battle():
     # ====================================================================
     log_print("\n[2] Tuning Random Forest dengan Optuna...")
 
-    # Kita pakai print biasa untuk log optuna supaya file txt tidak penuh sampah log trial
     optuna.logging.set_verbosity(optuna.logging.WARNING)
 
     def objective(trial):
@@ -134,9 +157,12 @@ def latih_final_battle():
         nama_juara = "Linear Regression"
         y_pred_final = y_pred_lr
         
+    # --- SIMPAN MODEL & LIST FITUR ---
     joblib.dump(juara_model, 'model_kost_terbaik.pkl')
-    joblib.dump(X.columns, 'list_fitur.pkl')
-    log_print(f"Model {nama_juara} telah disimpan ke file .pkl")
+    
+    joblib.dump(X.columns.tolist(), 'list_fitur.pkl') 
+    
+    log_print(f"Model {nama_juara} dan list fitur telah disimpan (FIXED FORMAT).")
 
     # ====================================================================
     # SIMPAN OUTPUT KE TXT & GRAFIK
@@ -193,7 +219,7 @@ def latih_final_battle():
     path_img = os.path.join(nama_folder, f"Grafik_{nama_juara.replace(' ', '_')}.png")
     plt.savefig(path_img, dpi=300)
     plt.close()
-    print(f"[SUKSES] Grafik evaluasi disimpan di:\n   -> {path_img}")
+    print(f"[SUKSES] Grafik evaluasi utama disimpan di:\n   -> {path_img}")
 
 if __name__ == "__main__":
     latih_final_battle()
